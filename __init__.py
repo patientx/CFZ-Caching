@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message="Should have tb<=t1", module="torchsde")
+
 from .cfz_caching_condition import save_conditioning, load_conditioning, CFZ_PrintMarker
 from .cfz_miopen import CFZ_MIOpen_Profile, CFZ_MIOpen_Settings, CFZ_MIOpen_Solvers, CFZ_MIOpen_Paths, CFZ_MIOpen_DBInfo
 
