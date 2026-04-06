@@ -250,147 +250,6 @@ class load_conditioning:
         
         return True
 
-class CFZ_CUDNN:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "cudnn_enabled": ("BOOLEAN", {"default": True}),
-            },
-            "optional": {
-                "trigger": (any_type, {}),
-            },
-        }
-
-    RETURN_TYPES = (any_type,)
-    RETURN_NAMES = ("output",)
-    OUTPUT_NODE = True
-    FUNCTION = "run"
-    CATEGORY = "CFZ Utils/Debug"
-
-    def run(self, cudnn_enabled=True, trigger=None):
-        """Toggle CUDNN settings and output the trigger"""
-        try:
-            torch.backends.cudnn.enabled = cudnn_enabled
-            torch.backends.cudnn.benchmark = cudnn_enabled
-            cudnn_state = "✓ ENABLED" if cudnn_enabled else "✗ DISABLED"
-            print(f"[CFZ CUDNN] {cudnn_state}")
-        except Exception as e:
-            print(f"[CFZ CUDNN] ⚠ Error: {str(e)}")
-        
-        return (trigger,)
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Always execute to ensure CUDNN setting is applied
-        return float("NaN")
-
-
-class CFZ_CUDNN_Advanced:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "cudnn_enabled": ("BOOLEAN", {"default": True}),
-                "pytorch_tunableop_enabled": ("BOOLEAN", {"default": False}),
-                "pytorch_tunableop_tuning": ("BOOLEAN", {"default": False}),
-                "miopen_debug_conv_direct": ("BOOLEAN", {"default": False}),
-                "miopen_find_enforce": ("INT", {"default": 2, "min": 1, "max": 5, "step": 1}),
-                "miopen_find_mode": ("INT", {"default": 1, "min": 1, "max": 5, "step": 1}),
-                "triton_print_autotuning": ("BOOLEAN", {"default": False}),
-                "triton_cache_autotuning": ("BOOLEAN", {"default": False}),
-            },
-            "optional": {
-                "trigger": (any_type, {}),
-            },
-        }
-
-    RETURN_TYPES = (any_type,)
-    RETURN_NAMES = ("output",)
-    OUTPUT_NODE = True
-    FUNCTION = "run"
-    CATEGORY = "CFZ Utils/Debug"
-
-    def run(self, cudnn_enabled=True, pytorch_tunableop_enabled=False, 
-            pytorch_tunableop_tuning=False, miopen_debug_conv_direct=False,
-            miopen_find_enforce=2, miopen_find_mode=1, triton_print_autotuning=False, 
-            triton_cache_autotuning=False, trigger=None):
-        """Toggle CUDNN and advanced PyTorch/MIOpen settings"""
-        
-        settings_applied = []
-        
-        # CUDNN Settings
-        try:
-            torch.backends.cudnn.enabled = cudnn_enabled
-            torch.backends.cudnn.benchmark = cudnn_enabled
-            cudnn_state = "ENABLED" if cudnn_enabled else "DISABLED"
-            settings_applied.append(f"CUDNN: {cudnn_state}")
-        except Exception as e:
-            settings_applied.append(f"CUDNN: ERROR ({str(e)})")
-        
-        # PyTorch TunableOp Settings
-        try:
-            os.environ['PYTORCH_TUNABLEOP_ENABLED'] = '1' if pytorch_tunableop_enabled else '0'
-            tunableop_state = "ENABLED" if pytorch_tunableop_enabled else "DISABLED"
-            settings_applied.append(f"PYTORCH_TUNABLEOP_ENABLED: {tunableop_state}")
-        except Exception as e:
-            settings_applied.append(f"PYTORCH_TUNABLEOP_ENABLED: ERROR ({str(e)})")
-        
-        try:
-            os.environ['PYTORCH_TUNABLEOP_TUNING'] = '1' if pytorch_tunableop_tuning else '0'
-            tuning_state = "ENABLED" if pytorch_tunableop_tuning else "DISABLED"
-            settings_applied.append(f"PYTORCH_TUNABLEOP_TUNING: {tuning_state}")
-        except Exception as e:
-            settings_applied.append(f"PYTORCH_TUNABLEOP_TUNING: ERROR ({str(e)})")
-        
-        # MIOpen Settings
-        try:
-            os.environ['MIOPEN_DEBUG_CONV_DIRECT'] = '1' if miopen_debug_conv_direct else '0'
-            miopen_debug_state = "ENABLED" if miopen_debug_conv_direct else "DISABLED"
-            settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT: {miopen_debug_state}")
-        except Exception as e:
-            settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT: ERROR ({str(e)})")
-
-        try:
-            os.environ['MIOPEN_FIND_ENFORCE'] = str(miopen_find_enforce)
-            settings_applied.append(f"MIOPEN_ENFORCE: {miopen_find_enforce}")
-        except Exception as e:
-            settings_applied.append(f"MIOPEN_ENFORCE: ERROR ({str(e)})")
-        
-        try:
-            os.environ['MIOPEN_FIND_MODE'] = str(miopen_find_mode)
-            settings_applied.append(f"MIOPEN_FIND_MODE: {miopen_find_mode}")
-        except Exception as e:
-            settings_applied.append(f"MIOPEN_FIND_MODE: ERROR ({str(e)})")
-        
-        # Triton Settings
-        try:
-            os.environ['TRITON_PRINT_AUTOTUNING'] = '1' if triton_print_autotuning else '0'
-            triton_print_state = "ENABLED" if triton_print_autotuning else "DISABLED"
-            settings_applied.append(f"TRITON_PRINT_AUTOTUNING: {triton_print_state}")
-        except Exception as e:
-            settings_applied.append(f"TRITON_PRINT_AUTOTUNING: ERROR ({str(e)})")
-        
-        try:
-            os.environ['TRITON_CACHE_AUTOTUNING'] = '1' if triton_cache_autotuning else '0'
-            triton_cache_state = "ENABLED" if triton_cache_autotuning else "DISABLED"
-            settings_applied.append(f"TRITON_CACHE_AUTOTUNING: {triton_cache_state}")
-        except Exception as e:
-            settings_applied.append(f"TRITON_CACHE_AUTOTUNING: ERROR ({str(e)})")
-        
-        # Print all settings
-        print("[CFZ CUDNN Advanced] Settings Applied:")
-        for setting in settings_applied:
-            print(f"  ✓ {setting}")
-        
-        return (trigger,)
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Always execute to ensure settings are applied
-        return float("NaN")
-
-
 class CFZ_PrintMarker:
     @classmethod
     def INPUT_TYPES(cls):
@@ -426,11 +285,9 @@ class CFZ_PrintMarker:
         # Handle CUDNN settings
         cudnn_info = ""
         try:
-            torch.backends.cudnn.enabled = cudnn_enabled
-            torch.backends.cudnn.benchmark = cudnn_enabled
-            cudnn_state = "ENABLED" if cudnn_enabled else "DISABLED"
-            cudnn_info = f" | CUDNN: {cudnn_state}"
-            print(f"[CFZ Marker] CUDNN set to: {cudnn_state}")
+            torch.backends.cudnn.benchmark = False
+            cudnn_info = " | CUDNN: benchmark=False"
+            print(f"[CFZ Marker] CUDNN benchmark=False (enabled left at default)")
         except Exception as e:
             cudnn_info = f" | CUDNN: ERROR ({str(e)})"
             print(f"[CFZ Marker] ⚠ Error setting CUDNN: {e}")
