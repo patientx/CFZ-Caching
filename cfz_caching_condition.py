@@ -281,9 +281,9 @@ class CFZ_CUDNN:
         return (trigger,)
 
     @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Always execute to ensure CUDNN setting is applied
-        return float("NaN")
+    def IS_CHANGED(cls, cudnn_enabled, **kwargs):
+        # Only re-execute when cudnn_enabled changes
+        return cudnn_enabled
 
 
 class CFZ_CUDNN_Advanced:
@@ -386,9 +386,16 @@ class CFZ_CUDNN_Advanced:
         return (trigger,)
 
     @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Always execute to ensure settings are applied
-        return float("NaN")
+    def IS_CHANGED(cls, cudnn_enabled=True, pytorch_tunableop_enabled=False, 
+                   pytorch_tunableop_tuning=False, miopen_debug_conv_direct=False,
+                   miopen_find_enforce=2, miopen_find_mode=1, triton_print_autotuning=False, 
+                   triton_cache_autotuning=False, **kwargs):
+        # Only re-execute when any setting changes
+        # Create a hash of all settings to determine if anything changed
+        settings_tuple = (cudnn_enabled, pytorch_tunableop_enabled, pytorch_tunableop_tuning,
+                         miopen_debug_conv_direct, miopen_find_enforce, miopen_find_mode,
+                         triton_print_autotuning, triton_cache_autotuning)
+        return hashlib.sha256(str(settings_tuple).encode('utf-8')).hexdigest()
 
 
 class CFZ_PrintMarker:
@@ -488,6 +495,11 @@ class CFZ_PrintMarker:
         return (trigger,)
 
     @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Always execute to ensure timing is accurate
-        return float("NaN")
+    def IS_CHANGED(cls, message, timer_name="workflow_timer", is_start_point=False, 
+                   is_end_point=False, show_current_time=True, clear_terminal=False, 
+                   cudnn_enabled=True, **kwargs):
+        # Only re-execute when settings change, not on every run
+        # This allows proper caching with fixed seeds
+        settings_tuple = (message, timer_name, is_start_point, is_end_point, 
+                         show_current_time, clear_terminal, cudnn_enabled)
+        return hashlib.sha256(str(settings_tuple).encode('utf-8')).hexdigest()
