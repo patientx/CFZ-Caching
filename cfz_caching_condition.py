@@ -295,8 +295,9 @@ class CFZ_CUDNN_Advanced:
                 "pytorch_tunableop_enabled": ("BOOLEAN", {"default": False}),
                 "pytorch_tunableop_tuning": ("BOOLEAN", {"default": False}),
                 "miopen_debug_conv_direct": ("BOOLEAN", {"default": False}),
-                "miopen_find_enforce": ("INT", {"default": 2, "min": 1, "max": 5, "step": 1}),
-                "miopen_find_mode": ("INT", {"default": 1, "min": 1, "max": 5, "step": 1}),
+                "miopen_debug_conv_naive_fwd": ("BOOLEAN", {"default": False}),
+                "miopen_find_enforce": ("INT", {"default": 2, "min": 0, "max": 5, "step": 1}),
+                "miopen_find_mode": ("INT", {"default": 1, "min": 0, "max": 5, "step": 1}),
                 "triton_print_autotuning": ("BOOLEAN", {"default": False}),
                 "triton_cache_autotuning": ("BOOLEAN", {"default": False}),
             },
@@ -313,8 +314,8 @@ class CFZ_CUDNN_Advanced:
 
     def run(self, cudnn_enabled=True, pytorch_tunableop_enabled=False, 
             pytorch_tunableop_tuning=False, miopen_debug_conv_direct=False,
-            miopen_find_enforce=2, miopen_find_mode=1, triton_print_autotuning=False, 
-            triton_cache_autotuning=False, trigger=None):
+            miopen_debug_conv_naive_fwd=False, miopen_find_enforce=2, miopen_find_mode=1,
+            triton_print_autotuning=False, triton_cache_autotuning=False, trigger=None):
         """Toggle CUDNN and advanced PyTorch/MIOpen settings"""
         
         settings_applied = []
@@ -350,6 +351,13 @@ class CFZ_CUDNN_Advanced:
             settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT: {miopen_debug_state}")
         except Exception as e:
             settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT: ERROR ({str(e)})")
+
+        try:
+            os.environ['MIOPEN_DEBUG_CONV_DIRECT_NAIVE_CONV_FWD'] = '1' if miopen_debug_conv_naive_fwd else '0'
+            miopen_naive_fwd_state = "ENABLED" if miopen_debug_conv_naive_fwd else "DISABLED"
+            settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT_NAIVE_CONV_FWD: {miopen_naive_fwd_state}")
+        except Exception as e:
+            settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT_NAIVE_CONV_FWD: ERROR ({str(e)})")
 
         try:
             os.environ['MIOPEN_FIND_ENFORCE'] = str(miopen_find_enforce)
@@ -388,13 +396,13 @@ class CFZ_CUDNN_Advanced:
     @classmethod
     def IS_CHANGED(cls, cudnn_enabled=True, pytorch_tunableop_enabled=False, 
                    pytorch_tunableop_tuning=False, miopen_debug_conv_direct=False,
-                   miopen_find_enforce=2, miopen_find_mode=1, triton_print_autotuning=False, 
-                   triton_cache_autotuning=False, **kwargs):
+                   miopen_debug_conv_naive_fwd=False, miopen_find_enforce=2, miopen_find_mode=1,
+                   triton_print_autotuning=False, triton_cache_autotuning=False, **kwargs):
         # Only re-execute when any setting changes
         # Create a hash of all settings to determine if anything changed
         settings_tuple = (cudnn_enabled, pytorch_tunableop_enabled, pytorch_tunableop_tuning,
-                         miopen_debug_conv_direct, miopen_find_enforce, miopen_find_mode,
-                         triton_print_autotuning, triton_cache_autotuning)
+                         miopen_debug_conv_direct, miopen_debug_conv_naive_fwd, miopen_find_enforce,
+                         miopen_find_mode, triton_print_autotuning, triton_cache_autotuning)
         return hashlib.sha256(str(settings_tuple).encode('utf-8')).hexdigest()
 
 
