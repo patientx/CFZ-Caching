@@ -360,14 +360,22 @@ class CFZ_CUDNN_Advanced:
             settings_applied.append(f"MIOPEN_DEBUG_CONV_DIRECT_NAIVE_CONV_FWD: ERROR ({str(e)})")
 
         try:
-            os.environ['MIOPEN_FIND_ENFORCE'] = str(miopen_find_enforce)
-            settings_applied.append(f"MIOPEN_ENFORCE: {miopen_find_enforce}")
+            if miopen_find_enforce == 0:
+                os.environ.pop('MIOPEN_FIND_ENFORCE', None)
+                settings_applied.append(f"MIOPEN_ENFORCE: DISABLED (unset)")
+            else:
+                os.environ['MIOPEN_FIND_ENFORCE'] = str(miopen_find_enforce)
+                settings_applied.append(f"MIOPEN_ENFORCE: {miopen_find_enforce}")
         except Exception as e:
             settings_applied.append(f"MIOPEN_ENFORCE: ERROR ({str(e)})")
         
         try:
-            os.environ['MIOPEN_FIND_MODE'] = str(miopen_find_mode)
-            settings_applied.append(f"MIOPEN_FIND_MODE: {miopen_find_mode}")
+            if miopen_find_mode == 0:
+                os.environ.pop('MIOPEN_FIND_MODE', None)
+                settings_applied.append(f"MIOPEN_FIND_MODE: DISABLED (unset)")
+            else:
+                os.environ['MIOPEN_FIND_MODE'] = str(miopen_find_mode)
+                settings_applied.append(f"MIOPEN_FIND_MODE: {miopen_find_mode}")
         except Exception as e:
             settings_applied.append(f"MIOPEN_FIND_MODE: ERROR ({str(e)})")
         
